@@ -27,49 +27,82 @@ void AFloorButton::BeginPlay()
 	FullyPressedPosition.Z -= 10.f;
 }
 
+void AFloorButton::SpawnPortal()
+{
+	FActorSpawnParameters SpawnInfo;
+	AActor* Portal = GetWorld()->SpawnActor<AActor>(BP_Teleport, SpawnPosition, FRotator(0.F), SpawnInfo);
+	OnPressed();
+}
+
+//void AFloorButton::ToggleLasers()
+//{
+//	for (const TSubclassOf<AActor> &t : Targets)
+//	{
+//		if (t = TSubclassOf<AActor> )
+//	}
+//}
+
+void AFloorButton::ToggleFans()
+{
+
+}
+
+void AFloorButton::Unpress()
+{
+	D_BUG("I'm so unpressed.", NULL);
+	bPressed = false;
+}
+
 void AFloorButton::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (bPressed) return;
 	if (ATeleBubbiesCharacter* Player = Cast<ATeleBubbiesCharacter>(OtherActor))
 	{
-		bPressed = true;
-		this->SetActorEnableCollision(false);
-
 		if (AudioComponent)
 		{
 			AudioComponent->SetSound(PressButtonSound);
 			AudioComponent->Play(0.f);
 		}
 
-		FActorSpawnParameters SpawnInfo;
-		AActor* Portal = GetWorld()->SpawnActor<AActor>(BP_Teleport, SpawnPosition, FRotator(0.F), SpawnInfo);
-
-		float Time = 0.f;
-		int i = 0;
-
-		while (i < 20)
+		switch (ButtonTarget)
 		{
-			FVector CurrentPosition = GetActorLocation();
-
-			Time += GetWorld()->GetDeltaSeconds();
-			if (Time >= 0.1f)
-			{
-				OnPressed(CurrentPosition, i);
-				Time = 0.f;
-			}
+			case ETarget::S_Portal:
+				SpawnPortal();
+				break;
+			case ETarget::S_Lasers:
+				ToggleLasers();
+				bPressed = true;
+				D_BUG("If a-you press-a me, I press-a yo mama!", NULL);
+				GetWorld()->GetTimerManager().SetTimer(UnpressTime, this, &AFloorButton::Unpress, 1.f, false);
+				break;
+			case ETarget::S_Fans:
+				ToggleFans();
+				break;
+			default:
+				break;
 		}
 	}
 }
 
-void AFloorButton::OnPressed(FVector ActorLocation, int& i)
+void AFloorButton::OnPressed()
 {
-	if (i < 19)
-	{
-		FVector NewPosition = FVector(ActorLocation.X, ActorLocation.Y, ActorLocation.Z - 1.f);
-		SetActorLocation(NewPosition);
-	}
-	else
-		SetActorLocation(FullyPressedPosition);
+	bPressed = true;
+	this->SetActorEnableCollision(false);
+	float Time = 0.f;
+	int i = 0;
 
-	i++;
+	while (i < 20)
+	{
+		FVector CurrentPosition = GetActorLocation();
+
+		Time += GetWorld()->GetDeltaSeconds();
+		if (Time >= 0.1f)
+		{
+			FVector NewPosition = FVector(CurrentPosition.X, CurrentPosition.Y, CurrentPosition.Z - 1.f);
+			SetActorLocation(NewPosition);
+			Time = 0.f;
+			i++;
+		}
+	}
+	SetActorLocation(FullyPressedPosition);
 }
