@@ -12,6 +12,7 @@ public:
 	AFloorButton();
 	UFUNCTION() void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	UPROPERTY(EditAnywhere, Category = Body)	class UCapsuleComponent* Collider;
 	UPROPERTY(EditAnywhere, Category = Body)	class UStaticMeshComponent* MainMesh;
 	UPROPERTY(EditAnywhere, Category = Sound)	class USoundCue* PressButtonSound;
 												class UAudioComponent* AudioComponent;
@@ -21,7 +22,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void OnPressed(FVector ActorLocation);
+	void OnPressed(FVector ActorLocation, int& i);
 
 	FVector FullyPressedPosition = FVector(0.F);
 	bool bPressed = false;
