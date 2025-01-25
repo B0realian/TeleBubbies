@@ -42,10 +42,10 @@ void AFloorButton::SpawnPortal()
 //	}
 //}
 
-void AFloorButton::ToggleFans()
-{
-
-}
+//void AFloorButton::ToggleFans()
+//{
+//
+//}
 
 void AFloorButton::Unpress()
 {
@@ -77,6 +77,8 @@ void AFloorButton::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
 				break;
 			case ETarget::S_Fans:
 				ToggleFans();
+				bPressed = true;
+				GetWorld()->GetTimerManager().SetTimer(UnpressTime, this, &AFloorButton::Unpress, 1.f, false);
 				break;
 			default:
 				break;
