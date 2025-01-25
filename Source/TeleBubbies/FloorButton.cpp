@@ -4,6 +4,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
+#include "TeleBubbiesCharacter.h"
 
 
 AFloorButton::AFloorButton()
@@ -29,31 +30,33 @@ void AFloorButton::BeginPlay()
 void AFloorButton::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (bPressed) return;
-
-	bPressed = true;
-	this->SetActorEnableCollision(false);
-
-	if (AudioComponent)
+	if (ATeleBubbiesCharacter* Player = Cast<ATeleBubbiesCharacter>(OtherActor))
 	{
-		AudioComponent->SetSound(PressButtonSound);
-		AudioComponent->Play(0.f);
-	}
+		bPressed = true;
+		this->SetActorEnableCollision(false);
 
-	FActorSpawnParameters SpawnInfo;
-	AActor* Portal = GetWorld()->SpawnActor<AActor>(BP_Teleport, SpawnPosition, FRotator(0.F), SpawnInfo);
-
-	float Time = 0.f;
-	int i = 0;
-
-	while (i < 20)
-	{
-		FVector CurrentPosition = GetActorLocation();
-		
-		Time += GetWorld()->GetDeltaSeconds();
-		if (Time >= 0.1f)
+		if (AudioComponent)
 		{
-			OnPressed(CurrentPosition, i);
-			Time = 0.f;
+			AudioComponent->SetSound(PressButtonSound);
+			AudioComponent->Play(0.f);
+		}
+
+		FActorSpawnParameters SpawnInfo;
+		AActor* Portal = GetWorld()->SpawnActor<AActor>(BP_Teleport, SpawnPosition, FRotator(0.F), SpawnInfo);
+
+		float Time = 0.f;
+		int i = 0;
+
+		while (i < 20)
+		{
+			FVector CurrentPosition = GetActorLocation();
+
+			Time += GetWorld()->GetDeltaSeconds();
+			if (Time >= 0.1f)
+			{
+				OnPressed(CurrentPosition, i);
+				Time = 0.f;
+			}
 		}
 	}
 }
