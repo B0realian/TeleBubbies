@@ -21,6 +21,7 @@ public:
 	AFloorButton();
 	UFUNCTION() void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 	UFUNCTION(BlueprintImplementableEvent) void ToggleLasers();
+	UFUNCTION(BlueprintImplementableEvent) void ToggleFans();
 
 	UPROPERTY(EditAnywhere, Category = Body)	class UCapsuleComponent* Collider;
 	UPROPERTY(EditAnywhere, Category = Body)	class UStaticMeshComponent* MainMesh;
@@ -34,7 +35,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void SpawnPortal();
-	void ToggleFans();
 	void Unpress();
 	void OnPressed();
 
