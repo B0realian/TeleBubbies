@@ -76,6 +76,7 @@ void AFloorButton::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
 				GetWorld()->GetTimerManager().SetTimer(UnpressTime, this, &AFloorButton::Unpress, 1.f, false);
 				break;
 			case ETarget::S_Fans:
+				D_BUG("It's FAN-TASTIC!!", NULL);
 				ToggleFans();
 				bPressed = true;
 				GetWorld()->GetTimerManager().SetTimer(UnpressTime, this, &AFloorButton::Unpress, 1.f, false);
