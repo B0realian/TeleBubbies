@@ -55,11 +55,9 @@ void AFloorButton::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
 			case ETarget::S_Lasers:
 				ToggleLasers();
 				bPressed = true;
-				D_BUG("If a-you press-a me, I press-a yo mama!", NULL);
 				GetWorld()->GetTimerManager().SetTimer(UnpressTime, this, &AFloorButton::Unpress, 1.f, false);
 				break;
 			case ETarget::S_Fans:
-				D_BUG("It's FAN-TASTIC!!", NULL);
 				ToggleFans();
 				bPressed = true;
 				GetWorld()->GetTimerManager().SetTimer(UnpressTime, this, &AFloorButton::Unpress, 1.f, false);
