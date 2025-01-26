@@ -1,6 +1,5 @@
 #include "FloorButton.h"
 #define D_BUG(text, fstring) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT(text), fstring))
-#include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
@@ -12,8 +11,6 @@ AFloorButton::AFloorButton()
 	PrimaryActorTick.bCanEverTick = true;
 	MainMesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
 	SetRootComponent(MainMesh);
-	Collider = CreateDefaultSubobject<UCapsuleComponent>("Collider");
-	Collider->SetupAttachment(RootComponent);
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>("AudioComponent");
 	AudioComponent->SetupAttachment(RootComponent);
 }
@@ -34,22 +31,8 @@ void AFloorButton::SpawnPortal()
 	OnPressed();
 }
 
-//void AFloorButton::ToggleLasers()
-//{
-//	for (const TSubclassOf<AActor> &t : Targets)
-//	{
-//		if (t = TSubclassOf<AActor> )
-//	}
-//}
-
-//void AFloorButton::ToggleFans()
-//{
-//
-//}
-
 void AFloorButton::Unpress()
 {
-	D_BUG("I'm so unpressed.", NULL);
 	bPressed = false;
 }
 
