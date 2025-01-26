@@ -23,7 +23,6 @@ public:
 	UFUNCTION(BlueprintImplementableEvent) void ToggleLasers();
 	UFUNCTION(BlueprintImplementableEvent) void ToggleFans();
 
-	UPROPERTY(EditAnywhere, Category = Body)	class UCapsuleComponent* Collider;
 	UPROPERTY(EditAnywhere, Category = Body)	class UStaticMeshComponent* MainMesh;
 	UPROPERTY(EditAnywhere, Category = Sound)	class USoundCue* PressButtonSound;
 												class UAudioComponent* AudioComponent;
