@@ -1,6 +1,7 @@
 #include "FloorButton.h"
 #define D_BUG(text, fstring) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT(text), fstring))
 #include "Components/StaticMeshComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
 #include "TeleBubbiesCharacter.h"
@@ -11,6 +12,8 @@ AFloorButton::AFloorButton()
 	PrimaryActorTick.bCanEverTick = true;
 	MainMesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
 	SetRootComponent(MainMesh);
+	Collider = CreateDefaultSubobject<UCapsuleComponent>("Collider");
+	Collider->SetupAttachment(RootComponent);
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>("AudioComponent");
 	AudioComponent->SetupAttachment(RootComponent);
 }
@@ -18,75 +21,98 @@ AFloorButton::AFloorButton()
 void AFloorButton::BeginPlay()
 {
 	Super::BeginPlay();
-	MainMesh->OnComponentHit.AddDynamic(this, &AFloorButton::OnHit);
-	this->SetActorEnableCollision(true);
-	FullyPressedPosition = FVector(GetActorLocation());
+	if (bOverlappingNotHitting)
+	{
+		Collider->OnComponentBeginOverlap.AddDynamic(this, &AFloorButton::OnOverlap);
+		Collider->OnComponentEndOverlap.AddDynamic(this, &AFloorButton::OnOverlapEnd);
+	}
+	else
+		MainMesh->OnComponentHit.AddDynamic(this, &AFloorButton::OnHit);
+	Collider->SetGenerateOverlapEvents(bOverlappingNotHitting);
+
+	StartingPosition = FVector(GetActorLocation());
+	FullyPressedPosition = StartingPosition;
 	FullyPressedPosition.Z -= 10.f;
 }
 
 void AFloorButton::SpawnPortal()
 {
+	if (bPortalSpawned) return;
+	
 	FActorSpawnParameters SpawnInfo;
 	AActor* Portal = GetWorld()->SpawnActor<AActor>(BP_Teleport, SpawnPosition, FRotator(0.F), SpawnInfo);
-	OnPressed();
+	bPortalSpawned = true;
 }
 
-void AFloorButton::Unpress()
+void AFloorButton::FindTarget(bool bOverlapping)
 {
-	bPressed = false;
+	if (AudioComponent && !AudioComponent->IsPlaying())
+	{
+		AudioComponent->SetSound(PressButtonSound);
+		AudioComponent->Play(0.f);
+	}
+	
+	switch (ButtonTarget)
+	{
+		case ETarget::S_Portal:
+			SpawnPortal();
+			break;
+		case ETarget::S_Lasers:
+			ToggleLasers();
+			if (!bOverlapping)
+				GetWorld()->GetTimerManager().SetTimer(UnpressTime, this, &AFloorButton::Unpress, 1.f, false);
+			break;
+		case ETarget::S_Fans:
+			ToggleFans();
+			if (!bOverlapping)
+				GetWorld()->GetTimerManager().SetTimer(UnpressTime, this, &AFloorButton::Unpress, 1.f, false);
+			break;
+		default:
+			break;
+	}
+}
+
+void AFloorButton::OnOverlap(UPrimitiveComponent* OverlapComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool FromSweep, const FHitResult& SweepResult)
+{
+	if (!bOverlappingNotHitting || bPressed) return;
+	
+	if (ATeleBubbiesCharacter* Player = Cast<ATeleBubbiesCharacter>(OtherActor))
+	{
+		FindTarget(bOverlappingNotHitting);
+		OnPressed();
+	}
+}
+
+void AFloorButton::OnOverlapEnd(UPrimitiveComponent* OverlapComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (!bOverlappingNotHitting || !bPressed) return;
+	
+	if (ATeleBubbiesCharacter* Player = Cast<ATeleBubbiesCharacter>(OtherActor))
+	{
+		FindTarget(bOverlappingNotHitting);
+		Unpress();
+	}
 }
 
 void AFloorButton::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (bPressed) return;
+	if (bPressed || bOverlappingNotHitting) return;
 	if (ATeleBubbiesCharacter* Player = Cast<ATeleBubbiesCharacter>(OtherActor))
 	{
-		if (AudioComponent)
-		{
-			AudioComponent->SetSound(PressButtonSound);
-			AudioComponent->Play(0.f);
-		}
-
-		switch (ButtonTarget)
-		{
-			case ETarget::S_Portal:
-				SpawnPortal();
-				break;
-			case ETarget::S_Lasers:
-				ToggleLasers();
-				bPressed = true;
-				GetWorld()->GetTimerManager().SetTimer(UnpressTime, this, &AFloorButton::Unpress, 1.f, false);
-				break;
-			case ETarget::S_Fans:
-				ToggleFans();
-				bPressed = true;
-				GetWorld()->GetTimerManager().SetTimer(UnpressTime, this, &AFloorButton::Unpress, 1.f, false);
-				break;
-			default:
-				break;
-		}
+		FindTarget(bOverlappingNotHitting);
+		OnPressed();
 	}
 }
 
 void AFloorButton::OnPressed()
 {
 	bPressed = true;
-	this->SetActorEnableCollision(false);
-	float Time = 0.f;
-	int i = 0;
-
-	while (i < 20)
-	{
-		FVector CurrentPosition = GetActorLocation();
-
-		Time += GetWorld()->GetDeltaSeconds();
-		if (Time >= 0.1f)
-		{
-			FVector NewPosition = FVector(CurrentPosition.X, CurrentPosition.Y, CurrentPosition.Z - 1.f);
-			SetActorLocation(NewPosition);
-			Time = 0.f;
-			i++;
-		}
-	}
-	SetActorLocation(FullyPressedPosition);
+	//SetActorLocation(FullyPressedPosition);
 }
+
+void AFloorButton::Unpress()
+{
+	bPressed = false;
+	//SetActorLocation(StartingPosition);
+}
+
