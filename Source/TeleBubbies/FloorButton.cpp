@@ -34,22 +34,8 @@ void AFloorButton::SpawnPortal()
 	OnPressed();
 }
 
-//void AFloorButton::ToggleLasers()
-//{
-//	for (const TSubclassOf<AActor> &t : Targets)
-//	{
-//		if (t = TSubclassOf<AActor> )
-//	}
-//}
-
-//void AFloorButton::ToggleFans()
-//{
-//
-//}
-
 void AFloorButton::Unpress()
 {
-	D_BUG("I'm so unpressed.", NULL);
 	bPressed = false;
 }
 
