@@ -23,10 +23,12 @@ void ACrate::BeginPlay()
 
 void ACrate::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (AudioComponent)
-		AudioComponent->Play(0.f);
-
 	if (ATeleBubbiesCharacter* Player = Cast<ATeleBubbiesCharacter>(OtherActor))
+	{
+		if (AudioComponent)
+			AudioComponent->Play(0.f);
+
 		AddActorLocalOffset(OtherActor->GetActorForwardVector() * 5.f);
+	}
 }
 
